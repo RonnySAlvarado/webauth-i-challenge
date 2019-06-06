@@ -45,4 +45,25 @@ server.get("/api/users", async (req, res) => {
   }
 });
 
+server.post("/api/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    db.findUser(username)
+      .first()
+      .then(user => {
+        console.log(user);
+        console.log(user.password);
+        if (!user || !bcrypt.compareSync(password, user.password)) {
+          return res.status(401).json({ message: "Incorrect credentials." });
+        } else {
+          return res.status(200).json({ message: `Welcome, ${username}! ` });
+        }
+      });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Something went wrong with this request." });
+  }
+});
+
 module.exports = server;

@@ -30,4 +30,19 @@ server.post("/api/register", async (req, res) => {
   }
 });
 
+server.get("/api/users", async (req, res) => {
+  try {
+    const getUsers = await db.getUsers();
+    if (getUsers) {
+      res.status(200).json(getUsers);
+    } else {
+      res.status(400).json({ message: "Bad request. Cannot get users." });
+    }
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Something went wrong with this request." });
+  }
+});
+
 module.exports = server;

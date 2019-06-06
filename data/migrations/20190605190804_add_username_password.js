@@ -6,7 +6,6 @@ exports.up = async function(knex) {
       .notNullable()
       .unique();
     tbl.string("password").notNullable();
-    tbl.timestamp(true, true);
   });
 };
 

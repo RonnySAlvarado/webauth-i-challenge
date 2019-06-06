@@ -48,7 +48,7 @@ server.get("/api/users", async (req, res) => {
 server.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
-    db.findUser(username)
+    db.login(username)
       .first()
       .then(user => {
         console.log(user);

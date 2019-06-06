@@ -14,8 +14,6 @@ function getUsers() {
   return db("usernames-passwords");
 }
 
-function login(credentials) {}
-
-function findUser(username) {
+function login(username) {
   return db("usernames-passwords").where({ username: username });
 }

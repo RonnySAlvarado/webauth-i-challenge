@@ -2,13 +2,34 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
+const session = require("express-session");
+const SessionStore = require("connect-session-knex")(session);
 
+const sessionConfig = {
+  name: "This-is-not-Express",
+  secret: "This-is-definitely-not-Express",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 60 * 60 * 1000,
+    secure: false,
+    httpOnly: true
+  },
+  store: new SessionStore({
+    knex: require("./data/dbConfig.js"),
+    tablename: "sessions",
+    sid: "sid",
+    createtable: true,
+    clearInterval: 60 * 60 * 1000
+  })
+};
 const db = require("./data/dbMethod.js");
 
 const server = express();
 
-server.use(express.json());
+server.use(session(sessionConfig));
 server.use(helmet());
+server.use(express.json());
 server.use(cors());
 
 server.post("/api/register", async (req, res) => {
@@ -30,7 +51,7 @@ server.post("/api/register", async (req, res) => {
   }
 });
 
-server.get("/api/users", async (req, res) => {
+server.get("/api/users", protected, async (req, res) => {
   try {
     const getUsers = await db.getUsers();
     if (getUsers) {
@@ -56,7 +77,8 @@ server.post("/api/login", async (req, res) => {
         if (!user || !bcrypt.compareSync(password, user.password)) {
           return res.status(401).json({ message: "Incorrect credentials." });
         } else {
-          return res.status(200).json({ message: `Welcome, ${username}! ` });
+          req.session.username = user;
+          res.status(200).json({ message: `Welcome, ${username}! ` });
         }
       });
   } catch (err) {
@@ -66,4 +88,27 @@ server.post("/api/login", async (req, res) => {
   }
 });
 
+server.get("/api/logout", protected, (req, res) => {
+  if (req.session) {
+    req.session.destroy(err => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ message: "There was an error" });
+      } else {
+        res.end();
+      }
+    });
+  } else {
+    res.end();
+  }
+});
+
 module.exports = server;
+
+function protected(req, res, next) {
+  if (req.session && req.session.username) {
+    next();
+  } else {
+    res.status(401).json({ message: "You are not authorized." });
+  }
+}

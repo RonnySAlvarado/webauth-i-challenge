@@ -3,7 +3,7 @@ const db = require("./dbConfig.js");
 module.exports = {
   register,
   getUsers,
-  findUser
+  login
 };
 
 function register(credentials) {
